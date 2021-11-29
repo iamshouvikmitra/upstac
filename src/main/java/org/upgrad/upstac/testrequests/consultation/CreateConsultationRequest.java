@@ -1,14 +1,13 @@
 package org.upgrad.upstac.testrequests.consultation;
 
-import lombok.Data;
-
 import javax.validation.constraints.NotNull;
+import lombok.Data;
 
 @Data
 public class CreateConsultationRequest {
 
-    @NotNull
-    private DoctorSuggestion suggestion;
+  @NotNull
+  private DoctorSuggestion suggestion;
 
-    private String comments;
+  private String comments;
 }

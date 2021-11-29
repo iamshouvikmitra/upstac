@@ -23,76 +23,77 @@ import org.springframework.security.web.firewall.StrictHttpFirewall;
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 
-    @Autowired
-    @Qualifier("UpgradUserDetailsService")
-    private UserDetailsService UpgradUserDetailsService;
+  @Autowired
+  @Qualifier("UpgradUserDetailsService")
+  private UserDetailsService UpgradUserDetailsService;
 
-    @Autowired
-    private UnAuthorizedHandler unauthorizedHandler;
+  @Autowired
+  private UnAuthorizedHandler unauthorizedHandler;
 
-    @Override
-    @Bean
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
-    }
+  @Override
+  @Bean
+  public AuthenticationManager authenticationManagerBean() throws Exception {
+    return super.authenticationManagerBean();
+  }
 
-    @Autowired
-    public void globalUserDetails(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(UpgradUserDetailsService)
-                .passwordEncoder(encoder());
-    }
+  @Autowired
+  public void globalUserDetails(AuthenticationManagerBuilder auth) throws Exception {
+    auth.userDetailsService(UpgradUserDetailsService)
+        .passwordEncoder(encoder());
+  }
 
-    @Bean
-    public JwtAuthenticationFilter authenticationTokenFilterBean() throws Exception {
-        return new JwtAuthenticationFilter();
-    }
+  @Bean
+  public JwtAuthenticationFilter authenticationTokenFilterBean() throws Exception {
+    return new JwtAuthenticationFilter();
+  }
 
-    //To Enable Angular API additional slashes
-    @Bean
-    public HttpFirewall looseHttpFirewall() {
-        StrictHttpFirewall firewall = new StrictHttpFirewall();
-        firewall.setUnsafeAllowAnyHttpMethod(true);
-        firewall.setAllowSemicolon(true);
-        firewall.setAllowUrlEncodedSlash(true);
-        firewall.setAllowBackSlash(true);
-        firewall.setAllowUrlEncodedDoubleSlash(true);
-        firewall.setAllowUrlEncodedPercent(true);
-        firewall.setAllowUrlEncodedPeriod(true);
-        return firewall;
-    }
-
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-
-        http.cors().and().csrf().disable().
-                authorizeRequests()
-                .antMatchers(
-                        "/auth/**",
-                        "/auth/tester/register",
-                        "/auth/**/**",
-                        "/documents/**",
-                        "/public/**",
-                        "/h2-console",
-                        "/h2-console/**",
-                        "/v2/api-docs",
-                        "/configuration/ui",
-                        "/swagger-resources/**",
-                        "/configuration/security",
-                        "/swagger-ui.html",
-                        "/webjars/**").permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        http.addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
+  //To Enable Angular API additional slashes
+  @Bean
+  public HttpFirewall looseHttpFirewall() {
+    StrictHttpFirewall firewall = new StrictHttpFirewall();
+    firewall.setUnsafeAllowAnyHttpMethod(true);
+    firewall.setAllowSemicolon(true);
+    firewall.setAllowUrlEncodedSlash(true);
+    firewall.setAllowBackSlash(true);
+    firewall.setAllowUrlEncodedDoubleSlash(true);
+    firewall.setAllowUrlEncodedPercent(true);
+    firewall.setAllowUrlEncodedPeriod(true);
+    return firewall;
+  }
 
 
-    }
+  @Override
+  protected void configure(HttpSecurity http) throws Exception {
 
-    @Bean
-    public BCryptPasswordEncoder encoder(){
-        return new BCryptPasswordEncoder();
-    }
+    http.cors().and().csrf().disable().
+        authorizeRequests()
+        .antMatchers(
+            "/auth/**",
+            "/auth/tester/register",
+            "/auth/**/**",
+            "/documents/**",
+            "/public/**",
+            "/h2-console",
+            "/h2-console/**",
+            "/v2/api-docs",
+            "/configuration/ui",
+            "/swagger-resources/**",
+            "/configuration/security",
+            "/swagger-ui.html",
+            "/webjars/**").permitAll()
+        .anyRequest().authenticated()
+        .and()
+        .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
+        .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    http.addFilterBefore(authenticationTokenFilterBean(),
+        UsernamePasswordAuthenticationFilter.class);
+
+
+  }
+
+  @Bean
+  public BCryptPasswordEncoder encoder() {
+    return new BCryptPasswordEncoder();
+  }
 
 }

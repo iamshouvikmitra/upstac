@@ -14,28 +14,27 @@ import org.upgrad.upstac.users.models.Gender;
 public class RegisterRequest {
 
 
-    private String userName;
+  private String userName;
 
-    private String password;
-    private String firstName;
+  private String password;
+  private String firstName;
 
-    private String email="";
+  private String email = "";
 
-    private String phoneNumber="";
-
-
-    private String lastName;
-
-    private String address;
-
-    private Integer pinCode;
+  private String phoneNumber = "";
 
 
-    private String dateOfBirth;
+  private String lastName;
+
+  private String address;
+
+  private Integer pinCode;
 
 
-    private Gender gender;
+  private String dateOfBirth;
 
+
+  private Gender gender;
 
 
 }

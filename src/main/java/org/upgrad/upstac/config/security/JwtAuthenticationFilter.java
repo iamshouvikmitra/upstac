@@ -1,5 +1,10 @@
 package org.upgrad.upstac.config.security;
 
+import java.io.IOException;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -10,74 +15,70 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
-    static final String TOKEN_PREFIX = "Bearer ";
-    static final String HEADER_STRING = "Authorization";
+  static final String TOKEN_PREFIX = "Bearer ";
+  static final String HEADER_STRING = "Authorization";
 
 
-    @Autowired
-    @Qualifier("UpgradUserDetailsService")
-    private UserDetailsService userDetailsService;
+  @Autowired
+  @Qualifier("UpgradUserDetailsService")
+  private UserDetailsService userDetailsService;
 
-    @Autowired
-    private TokenProvider tokenProvider;
+  @Autowired
+  private TokenProvider tokenProvider;
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
-        String header = req.getHeader(HEADER_STRING);
+  @Override
+  protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res,
+      FilterChain chain) throws IOException, ServletException {
+    String header = req.getHeader(HEADER_STRING);
 
-        String username = null;
-        String authToken = null;
+    String username = null;
+    String authToken = null;
 
-        if (isTokenAttributeSetIn(header)) {
-            authToken = getAuthTokenFromHeader(header);
-            username = getUserNameFromToken(authToken);
-        }
-
-        if (isSecurityContextAuthenticationNotPresent(username)){
-            log.info("security context se");
-            setSecurityContextAuthenticationIn(req, username, authToken);
-        }
-
-
-        chain.doFilter(req, res);
+    if (isTokenAttributeSetIn(header)) {
+      authToken = getAuthTokenFromHeader(header);
+      username = getUserNameFromToken(authToken);
     }
 
-    String getAuthTokenFromHeader(String header) {
-        return header.replace(TOKEN_PREFIX, "");
+    if (isSecurityContextAuthenticationNotPresent(username)) {
+      log.info("security context se");
+      setSecurityContextAuthenticationIn(req, username, authToken);
     }
 
-    String getUserNameFromToken(String authToken) throws ServletException {
+    chain.doFilter(req, res);
+  }
 
-        return tokenProvider.getUsernameFromToken(authToken);
+  String getAuthTokenFromHeader(String header) {
+    return header.replace(TOKEN_PREFIX, "");
+  }
 
-    }
+  String getUserNameFromToken(String authToken) throws ServletException {
 
-    private boolean isTokenAttributeSetIn(String header) {
-        return header != null && header.startsWith(TOKEN_PREFIX);
-    }
+    return tokenProvider.getUsernameFromToken(authToken);
 
-    void setSecurityContextAuthenticationIn(HttpServletRequest req, String username, String authToken) throws ServletException {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+  }
 
-        tokenProvider.validateToken(authToken, userDetails);
-        UsernamePasswordAuthenticationToken authentication = tokenProvider.getAuthentication(authToken, SecurityContextHolder.getContext().getAuthentication(), userDetails);
-        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
-        logger.info("authenticated user " + username + ", setting security context");
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+  private boolean isTokenAttributeSetIn(String header) {
+    return header != null && header.startsWith(TOKEN_PREFIX);
+  }
 
-    }
+  void setSecurityContextAuthenticationIn(HttpServletRequest req, String username, String authToken)
+      throws ServletException {
+    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-    boolean isSecurityContextAuthenticationNotPresent(String username) {
-        return username != null && SecurityContextHolder.getContext().getAuthentication() == null;
-    }
+    tokenProvider.validateToken(authToken, userDetails);
+    UsernamePasswordAuthenticationToken authentication = tokenProvider.getAuthentication(authToken,
+        SecurityContextHolder.getContext().getAuthentication(), userDetails);
+    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
+    logger.info("authenticated user " + username + ", setting security context");
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+  }
+
+  boolean isSecurityContextAuthenticationNotPresent(String username) {
+    return username != null && SecurityContextHolder.getContext().getAuthentication() == null;
+  }
 }
